@@ -8,6 +8,7 @@ import CheckBox from 'components/CheckBox';
 import Slider from 'components/Slider';
 import GetPoints from 'api/charging';
 import {GeoCoding} from 'api/geocoding';
+import GetGasStations from 'api/gasStations'
 
 export default function Home() {
   const [location, setLocation] = useState("");
@@ -39,13 +40,22 @@ export default function Home() {
         freeParking,
         open247
       });
+
+      const gasStations = await GetGasStations({
+        lat: place?.[0]?.lat,
+        lng: place?.[0]?.lon,
+        radius,
+        sorting: 'dist',
+        fuelType: 'all' 
+      });
   
       setLoading(false)
       router.push({
         pathname: "details",
         params: {
           name: location,
-          data: JSON.stringify(result)
+          chargingData: JSON.stringify(result),
+          gasData: JSON.stringify(gasStations)
         }
       })
     }
@@ -60,7 +70,7 @@ export default function Home() {
     <>
       <Stack.Screen
         options={{
-          headerTitle: "Ladesäulen finden",
+          headerTitle: "Ladesäulen und Tankstellen finden",
         }}
       />
 
