@@ -20,7 +20,7 @@ export default function Home() {
 
   const [loading, setLoading] = useState(false)
 
-  const handleConfirm = async() => {
+  const handleChargingPoints = async() => {
     setLoading(true)
     const place = await GeoCoding({ address: location })
     if(!place?.[0]?.lat || !place?.[0]?.lon) {
@@ -41,21 +41,12 @@ export default function Home() {
         open247
       });
 
-      const gasStations = await GetGasStations({
-        lat: place?.[0]?.lat,
-        lng: place?.[0]?.lon,
-        radius,
-        sorting: 'dist',
-        fuelType: 'all' 
-      });
-  
       setLoading(false)
       router.push({
-        pathname: "details",
+        pathname: "chargingDetails",
         params: {
           name: location,
-          chargingData: JSON.stringify(result),
-          gasData: JSON.stringify(gasStations)
+          data: JSON.stringify(result)
         }
       })
     }
@@ -65,6 +56,40 @@ export default function Home() {
       alert("unexpected error")
     }
   }
+
+  const handleGasStations = async () => {
+    setLoading(true);
+    const place = await GeoCoding({ address: location });
+    if (!place?.[0]?.lat || !place?.[0]?.lon) {
+      alert("Ort ist ungültig.");
+      setLocation("");
+      setLoading(false);
+      return null;
+    }
+
+    try {
+      const result = await GetGasStations({
+        lat: place?.[0]?.lat,
+        lng: place?.[0]?.lon,
+        radius,
+        sorting: "dist",
+        fuelType: "all"
+      });
+
+      setLoading(false);
+      router.push({
+        pathname: "fuelDetails",
+        params: {
+          name: location,
+          data: JSON.stringify(result?.stations)
+        }
+      });
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+      alert("unexpected error");
+    }
+  };
 
   return (
     <>
@@ -100,7 +125,12 @@ export default function Home() {
         </View>
 
         <View style={styles.buttonSection}>
-          <Button title='Weiter' handlePress={handleConfirm} disabled={location === '' || loading}/>
+          <View style={styles.button}>
+            <Button handlePress={handleChargingPoints} title="Ladestationen suchen" disabled={location === '' || loading}/>
+          </View>
+          <View style={styles.button}>
+            <Button handlePress={handleGasStations} title="Tankstellen suchen" disabled={location === '' || loading}/>
+          </View>
         </View>
         
       </View>
@@ -121,11 +151,17 @@ const styles = StyleSheet.create({
     marginTop: 'auto',
     marginBottom: 50,
     paddingHorizontal: '10%',
-    width: '100%'
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   },
   section: {
     paddingVertical: 10,
     paddingHorizontal: '10%',
     width: '100%'
-  }
+  }, 
+  button: {
+    flex: 1,
+    marginHorizontal: 10, 
+  },
 });

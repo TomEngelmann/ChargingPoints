@@ -1,4 +1,3 @@
-import { ChargeLocation } from 'api/charging';
 import { Station } from 'api/gasStations'
 import Location from 'components/icons/Location';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -22,22 +21,7 @@ const navigateTo = ({coordinates, label}: INavigateTo) => {
     });
     Linking.openURL(url);
 }
-const ChargingItem = ({address, name, coordinates}: ChargeLocation) => (
-    <View style={styles.itemBorder}>
-        <View style={styles.itemContainer}>
-            <View style={styles.textContainer}>
-                <Text style={styles.title}>{name}</Text>
-                <Text style={styles.description}>{address.city}{" "} {address.street}</Text>
-            </View>
-            <Pressable onPress={() => navigateTo({coordinates, label: name}) }>
-                <Location width={24} height={24} color="#000"/>
-            </Pressable>
-        </View>
-     
-    </View>
-  );
-
-const GasStationItem = ({name, brand, street, houseNumber, place, lat, lng, diesel, e5, e10, isOpen, dist}: Station) => (
+const Item = ({name, brand, street, houseNumber, place, lat, lng, diesel, e5, e10, isOpen, dist}: Station) => (
     <View style={styles.itemBorder}>
       <View style={styles.itemContainer}>
         <View style={styles.textContainer}>
@@ -53,39 +37,28 @@ const GasStationItem = ({name, brand, street, houseNumber, place, lat, lng, dies
       </View>
     </View>
   );
-
-  export default function Details() {
+export default function Details() {
     const params = useLocalSearchParams();
-    const chargingStations: ChargeLocation[] = JSON.parse(params?.chargingData as string);
-    const gasStations: Station[] = JSON.parse(params?.gasData as string).stations;
-  
+    const stations: Station[] = JSON.parse(params?.data as string)
     return (
-      <View style={styles.container}>
-        <Stack.Screen
-          options={{
-            headerTitle: params.name as string,
-            headerBackTitleVisible: false
-          }}
-        />
-        <View style={styles.itemBorder}>
-          <Text style={styles.title}>{chargingStations.length} Ladestationen gefunden</Text>
+        <View style={styles.container}>
+            <Stack.Screen
+                options={{
+                headerTitle: params.name as string,
+                headerBackTitleVisible: false
+                }}
+            />
+            <View style={styles.itemBorder}>
+                <Text style={styles.title}>{stations.length} Tankstellen gefunden</Text>
+            </View>
+            <FlatList
+                data={stations}
+                renderItem={({ item }) => <Item {...item} />}
+                keyExtractor={item => item.id}
+            />
         </View>
-        <FlatList
-          data={chargingStations}
-          renderItem={({ item }) => <ChargingItem {...item} />}
-          keyExtractor={item => item.url}
-        />
-        <View style={styles.itemBorder}>
-          <Text style={styles.title}>{gasStations.length} Tankstellen gefunden</Text>
-        </View>
-        <FlatList
-          data={gasStations}
-          renderItem={({ item }) => <GasStationItem {...item} />}
-          keyExtractor={item => item.id}
-        />
-      </View>
     );
-  }
+}
 
 const styles = StyleSheet.create({
   container: {
