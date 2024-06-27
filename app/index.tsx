@@ -8,6 +8,7 @@ import CheckBox from 'components/CheckBox';
 import Slider from 'components/Slider';
 import GetPoints from 'api/charging';
 import {GeoCoding} from 'api/geocoding';
+import GetGasStations from 'api/gasStations'
 
 export default function Home() {
   const [location, setLocation] = useState("");
@@ -19,7 +20,7 @@ export default function Home() {
 
   const [loading, setLoading] = useState(false)
 
-  const handleConfirm = async() => {
+  const handleChargingPoints = async() => {
     setLoading(true)
     const place = await GeoCoding({ address: location })
     if(!place?.[0]?.lat || !place?.[0]?.lon) {
@@ -39,10 +40,10 @@ export default function Home() {
         freeParking,
         open247
       });
-  
+
       setLoading(false)
       router.push({
-        pathname: "details",
+        pathname: "chargingDetails",
         params: {
           name: location,
           data: JSON.stringify(result)
@@ -56,11 +57,45 @@ export default function Home() {
     }
   }
 
+  const handleGasStations = async () => {
+    setLoading(true);
+    const place = await GeoCoding({ address: location });
+    if (!place?.[0]?.lat || !place?.[0]?.lon) {
+      alert("Ort ist ungültig.");
+      setLocation("");
+      setLoading(false);
+      return null;
+    }
+
+    try {
+      const result = await GetGasStations({
+        lat: place?.[0]?.lat,
+        lng: place?.[0]?.lon,
+        radius,
+        sorting: "dist",
+        fuelType: "all"
+      });
+
+      setLoading(false);
+      router.push({
+        pathname: "fuelDetails",
+        params: {
+          name: location,
+          data: JSON.stringify(result?.stations)
+        }
+      });
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+      alert("unexpected error");
+    }
+  };
+
   return (
     <>
       <Stack.Screen
         options={{
-          headerTitle: "Ladesäulen finden",
+          headerTitle: "Ladesäulen und Tankstellen finden",
         }}
       />
 
@@ -90,7 +125,12 @@ export default function Home() {
         </View>
 
         <View style={styles.buttonSection}>
-          <Button title='Weiter' handlePress={handleConfirm} disabled={location === '' || loading}/>
+          <View style={styles.button}>
+            <Button handlePress={handleChargingPoints} title="Ladestationen suchen" disabled={location === '' || loading}/>
+          </View>
+          <View style={styles.button}>
+            <Button handlePress={handleGasStations} title="Tankstellen suchen" disabled={location === '' || loading}/>
+          </View>
         </View>
         
       </View>
@@ -111,11 +151,17 @@ const styles = StyleSheet.create({
     marginTop: 'auto',
     marginBottom: 50,
     paddingHorizontal: '10%',
-    width: '100%'
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   },
   section: {
     paddingVertical: 10,
     paddingHorizontal: '10%',
     width: '100%'
-  }
+  }, 
+  button: {
+    flex: 1,
+    marginHorizontal: 10, 
+  },
 });

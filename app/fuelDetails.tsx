@@ -1,4 +1,4 @@
-import { ChargeLocation } from 'api/charging';
+import { Station } from 'api/gasStations'
 import Location from 'components/icons/Location';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import React from 'react';
@@ -21,23 +21,25 @@ const navigateTo = ({coordinates, label}: INavigateTo) => {
     });
     Linking.openURL(url);
 }
-const Item = ({address, name, coordinates}: ChargeLocation) => (
+const Item = ({name, brand, street, houseNumber, place, lat, lng, diesel, e5, e10, isOpen, dist}: Station) => (
     <View style={styles.itemBorder}>
-        <View style={styles.itemContainer}>
-            <View style={styles.textContainer}>
-                <Text style={styles.title}>{name}</Text>
-                <Text style={styles.description}>{address.city}{" "} {address.street}</Text>
-            </View>
-            <Pressable onPress={() => navigateTo({coordinates, label: name}) }>
-                <Location width={24} height={24} color="#000"/>
-            </Pressable>
+      <View style={styles.itemContainer}>
+        <View style={styles.textContainer}>
+          <Text style={styles.title}>{brand} ({dist} km)</Text>
+          <Text style={styles.description}>{street} {houseNumber}, {place}</Text>
+          <Text style={styles.description}>Diesel: {diesel}€ E5: {e5}€ E10: {e10}€</Text>
+          <Text style={styles.description}>{isOpen ? 'Geöffnet' : 'Geschlossen'}</Text>
+          
         </View>
-     
+        <Pressable onPress={() => navigateTo({ coordinates: { lat, lng }, label: name })}>
+          <Location width={24} height={24} color="#000" />
+        </Pressable>
+      </View>
     </View>
   );
 export default function Details() {
     const params = useLocalSearchParams();
-    const stations: ChargeLocation[] = JSON.parse(params?.data as string)
+    const stations: Station[] = JSON.parse(params?.data as string)
     return (
         <View style={styles.container}>
             <Stack.Screen
@@ -47,12 +49,12 @@ export default function Details() {
                 }}
             />
             <View style={styles.itemBorder}>
-                <Text style={styles.title}>{stations.length} Ladestationen gefunden</Text>
+                <Text style={styles.title}>{stations.length} Tankstellen gefunden</Text>
             </View>
-            <FlatList 
+            <FlatList
                 data={stations}
-                renderItem={({item}) => <Item {...item} />}
-                keyExtractor={item => item.url}
+                renderItem={({ item }) => <Item {...item} />}
+                keyExtractor={item => item.id}
             />
         </View>
     );
