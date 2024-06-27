@@ -38,7 +38,6 @@ export default async function GetGasStations({lng, lat, radius, sorting, fuelTyp
             method: 'GET'
         });
         const res = await result.json()
-        console.log('GetGasStations API response:', res);
         return res;
     } catch(error) {
         console.log(error)

@@ -20,6 +20,10 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         borderRadius: 12,
         backgroundColor: '#008E5B',
+        minHeight: 75,
+        display: 'flex',
+        justifyContent: 'center',
+        paddingHorizontal: 5,
     },
     text: {
         color: '#fff',
